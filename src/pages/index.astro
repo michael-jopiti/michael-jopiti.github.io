@@ -1,4 +1,6 @@
 ---
+// shortcut: hardcoded from repos with Pages enabled, update when a new one is published
+const projects = ['Activations', 'SIR'];
 ---
 
 <html lang="en">
@@ -11,6 +13,16 @@
 		<title>Lorem Ipsum</title>
 	</head>
 	<body>
+		<nav>
+			<a href="/">Home</a>
+			<div class="dropdown">
+				<span tabindex="0">Projects</span>
+				<ul>
+					{projects.map((name) => <li><a href={`/${name}/`}>{name}</a></li>)}
+				</ul>
+			</div>
+			<a href="/about">About Me</a>
+		</nav>
 		<h1>Lorem Ipsum</h1>
 		<p>
 			Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor
@@ -24,3 +36,35 @@
 		</p>
 	</body>
 </html>
+
+<style>
+	nav {
+		display: flex;
+		justify-content: center;
+		gap: 2rem;
+		padding: 1rem;
+		border-bottom: 1px solid #ddd;
+	}
+	.dropdown {
+		position: relative;
+	}
+	.dropdown span {
+		cursor: default;
+	}
+	.dropdown ul {
+		display: none;
+		position: absolute;
+		top: 100%;
+		left: 50%;
+		transform: translateX(-50%);
+		margin: 0;
+		padding: 0.5rem 1rem;
+		list-style: none;
+		background: white;
+		border: 1px solid #ddd;
+	}
+	.dropdown:hover ul,
+	.dropdown:focus-within ul {
+		display: block;
+	}
+</style>
