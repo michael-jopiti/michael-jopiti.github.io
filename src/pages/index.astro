@@ -78,6 +78,10 @@ const roles = ['Computational Biologist', 'ML Engineer', 'Software Engineer'];
 		font-size: clamp(1.25rem, 3.5vw, 2.5rem);
 		line-height: 1.3;
 	}
+	/* zero-width space keeps the line box alive while the title is empty, so the caret stays on the line */
+	#role::before {
+		content: '\200b';
+	}
 	.sr-only {
 		position: absolute;
 		width: 1px;
