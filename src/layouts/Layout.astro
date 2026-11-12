@@ -1,0 +1,55 @@
+---
+import '@fontsource/inter/400.css';
+import '@fontsource/inter/700.css';
+
+const { title } = Astro.props;
+---
+
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<link rel="icon" href="/favicon.ico" />
+		<meta name="viewport" content="width=device-width" />
+		<meta name="generator" content={Astro.generator} />
+		<title>{title}</title>
+	</head>
+	<body>
+		<nav>
+			<a href="/">Home</a>
+			<a href="/projects">Projects</a>
+			<a href="/about">About Me</a>
+		</nav>
+		<main><slot /></main>
+	</body>
+</html>
+
+<style is:global>
+	body {
+		margin: 0;
+		font-family: 'Inter', sans-serif;
+		color: #111;
+		background: #fff;
+	}
+	a {
+		color: inherit;
+	}
+	nav {
+		display: flex;
+		justify-content: center;
+		gap: 2rem;
+		padding: 1.5rem;
+		font-weight: 700;
+	}
+	nav a {
+		text-decoration: none;
+	}
+	nav a:hover {
+		text-decoration: underline;
+	}
+	main {
+		max-width: 60rem;
+		margin: 0 auto;
+		padding: 2rem 1.5rem;
+	}
+</style>

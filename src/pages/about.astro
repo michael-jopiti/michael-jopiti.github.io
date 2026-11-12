@@ -1,0 +1,15 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { Content } from '../../aboutme.md';
+---
+
+<Layout title="About Me">
+	<article><Content /></article>
+</Layout>
+
+<style>
+	article {
+		max-width: 40rem;
+		line-height: 1.5;
+	}
+</style>

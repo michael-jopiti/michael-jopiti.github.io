@@ -1,0 +1,23 @@
+{
+  "name": "michael-jopiti-github-io",
+  "type": "module",
+  "version": "0.0.1",
+  "engines": {
+    "node": ">=22.23.4"
+  },
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro",
+    "test": "astro check"
+  },
+  "dependencies": {
+    "@fontsource/inter": "^5.3.0",
+    "astro": "^7.4.11"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.12",
+    "typescript": "^6.0.3"
+  }
+}
