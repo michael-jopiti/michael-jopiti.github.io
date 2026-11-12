@@ -1,70 +1,17 @@
 ---
-// shortcut: hardcoded from repos with Pages enabled, update when a new one is published
-const projects = ['Activations', 'SIR'];
+import Layout from '../layouts/Layout.astro';
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Lorem Ipsum</title>
-	</head>
-	<body>
-		<nav>
-			<a href="/">Home</a>
-			<div class="dropdown">
-				<span tabindex="0">Projects</span>
-				<ul>
-					{projects.map((name) => <li><a href={`/${name}/`}>{name}</a></li>)}
-				</ul>
-			</div>
-			<a href="/about">About Me</a>
-		</nav>
-		<h1>Lorem Ipsum</h1>
-		<p>
-			Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor
-			incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud
-			exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
-		</p>
-		<p>
-			Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu
-			fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa
-			qui officia deserunt mollit anim id est laborum.
-		</p>
-	</body>
-</html>
+<Layout title="Michael Jopiti">
+	<h1>Michael Jopiti</h1>
+</Layout>
 
 <style>
-	nav {
-		display: flex;
-		justify-content: center;
-		gap: 2rem;
-		padding: 1rem;
-		border-bottom: 1px solid #ddd;
-	}
-	.dropdown {
-		position: relative;
-	}
-	.dropdown span {
-		cursor: default;
-	}
-	.dropdown ul {
-		display: none;
-		position: absolute;
-		top: 100%;
-		left: 50%;
-		transform: translateX(-50%);
-		margin: 0;
-		padding: 0.5rem 1rem;
-		list-style: none;
-		background: white;
-		border: 1px solid #ddd;
-	}
-	.dropdown:hover ul,
-	.dropdown:focus-within ul {
-		display: block;
+	h1 {
+		margin: 20vh 0 0;
+		font-size: clamp(3rem, 12vw, 9rem);
+		font-weight: 700;
+		line-height: 0.95;
+		letter-spacing: -0.04em;
 	}
 </style>
