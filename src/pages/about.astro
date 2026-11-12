@@ -1,15 +1,8 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import { Content } from '../../aboutme.md';
+import Landing from '../components/Landing.astro';
 ---
 
 <Layout title="About Me">
-	<article><Content /></article>
+	<Landing start="about" />
 </Layout>
-
-<style>
-	article {
-		max-width: 40rem;
-		line-height: 1.5;
-	}
-</style>
