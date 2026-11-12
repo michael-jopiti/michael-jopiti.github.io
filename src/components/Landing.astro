@@ -81,6 +81,10 @@ const roles = ['Computational Biologist', 'ML Engineer', 'Software Engineer'];
 	}
 	.about {
 		opacity: clamp(0, calc((var(--p) - 0.7) * 4), 1);
+		/* a long text scrolls inside the view, a short one stays centered */
+		justify-content: flex-start;
+		overflow-y: auto;
+		padding-block: 4rem;
 	}
 	.waves {
 		position: fixed;
@@ -95,6 +99,7 @@ const roles = ['Computational Biologist', 'ML Engineer', 'Software Engineer'];
 	}
 	article {
 		max-width: 40rem;
+		margin-block: auto;
 		line-height: 1.5;
 	}
 </style>
@@ -261,6 +266,7 @@ const roles = ['Computational Biologist', 'ML Engineer', 'Software Engineer'];
 		const canvas = document.querySelector('canvas.waves');
 		const ctx = canvas.getContext('2d');
 		const nav = document.querySelector('nav');
+		const caption = document.querySelector('.caption');
 		const CELL_W = 7;
 		const CELL_H = 11;
 		const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -320,12 +326,18 @@ const roles = ['Computational Biologist', 'ML Engineer', 'Software Engineer'];
 			ctx.clearRect(0, 0, innerWidth, innerHeight);
 
 			// as big as the space between the nav and the strip allows, keeping some padding
-			const pad = Math.max(24, innerHeight * 0.04);
+			const pad = Math.max(24, Math.min(innerWidth, innerHeight) * 0.05);
 			const top = nav.getBoundingClientRect().bottom + pad;
-			const bottomEdge = innerHeight * 0.667 - pad;
+			const bottomEdge = caption.getBoundingClientRect().top - pad / 2;
 			const hx = innerWidth / 2;
 			const tipY = (top + bottomEdge) / 2; // centre of the flower
-			const fullR = Math.max(60, (bottomEdge - top) / 2);
+			// the flower must fit the height and the width, whichever is smaller
+			const fullR = Math.max(30, Math.min((bottomEdge - top) / 2, innerWidth / 2 - pad));
+			// a smaller flower gets smaller characters, so it keeps its detail
+			const unit = Math.min(1, Math.max(0.45, fullR / 175));
+			const cw = CELL_W * unit;
+			const ch = CELL_H * unit;
+			ctx.font = `bold ${11 * unit}px ui-monospace, Menlo, Consolas, monospace`;
 
 			const bud = ease((sec - 0.5) / 2.5);
 			const open = ease((sec - 3.5) / 6.5);
@@ -341,12 +353,12 @@ const roles = ['Computational Biologist', 'ML Engineer', 'Software Engineer'];
 			if (bud <= 0) return;
 
 			// head, on a grid that moves with it so the characters stay put on the flower
-			const cols = Math.ceil((fullR * 1.3) / CELL_W);
-			const rows = Math.ceil((fullR * 1.3) / CELL_H);
+			const cols = Math.ceil((fullR * 1.3) / cw);
+			const rows = Math.ceil((fullR * 1.3) / ch);
 			for (let j = -rows; j <= rows; j++) {
 				for (let i = -cols; i <= cols; i++) {
-					const dx = i * CELL_W;
-					const dy = j * CELL_H;
+					const dx = i * cw;
+					const dy = j * ch;
 					// the same cell in the bud's own, tilted, frame
 					const rx = dx * cosLean + dy * sinLean;
 					const ry = -dx * sinLean + dy * cosLean;
@@ -428,8 +440,8 @@ const roles = ['Computational Biologist', 'ML Engineer', 'Software Engineer'];
 			const grow = ease((open - 0.6) / 0.4);
 			if (grow > 0) {
 				const at = (k) => ({
-					x: hx + (0.04 * R - 0.4 * R * k + 0.06 * R * Math.sin(Math.PI * k)) * grow,
-					y: tipY + (0.2 * R - 0.85 * R * k) * grow,
+					x: hx + (-0.4 * R * k + 0.06 * R * Math.sin(Math.PI * k)) * grow,
+					y: tipY - 0.85 * R * k * grow,
 				});
 				for (let k = 0; k <= 1; k += 0.035) {
 					const point = at(k);
@@ -443,7 +455,7 @@ const roles = ['Computational Biologist', 'ML Engineer', 'Software Engineer'];
 				}
 				const tip = at(1);
 				ink(YELLOW, 1);
-				for (const [dx, dy] of [[0, -1], [-1, 0], [1, 0], [0, 1], [0, 0]]) ctx.fillText('O', tip.x + dx * 7, tip.y + dy * 8 - 6);
+				for (const [dx, dy] of [[0, -1], [-1, 0], [1, 0], [0, 1], [0, 0]]) ctx.fillText('O', tip.x + dx * 7 * unit, tip.y + dy * 8 * unit - 6 * unit);
 			}
 		}
 
@@ -484,7 +496,8 @@ const roles = ['Computational Biologist', 'ML Engineer', 'Software Engineer'];
 		line-height: 1.3;
 	}
 	#intro {
-		margin-top: 1.5rem;
+		/* less room above it on short screens */
+		margin-top: min(1.5rem, 2.5vh);
 	}
 	/* zero-width space keeps the line box alive while the title is empty, so the caret stays on the line */
 	.line::before {
@@ -521,7 +534,8 @@ const roles = ['Computational Biologist', 'ML Engineer', 'Software Engineer'];
 	/* small caption just right of center, under the flower, shown once it has opened */
 	.caption {
 		position: fixed;
-		left: calc(50% + 2rem);
+		/* just right of center, but never past the right edge, even on a phone */
+		left: clamp(1.5rem, calc(50% + 2rem), calc(100vw - 17.5rem));
 		bottom: calc(33.333vh + 0.9rem);
 		margin: 0;
 		font-size: 0.75rem;
@@ -537,6 +551,18 @@ const roles = ['Computational Biologist', 'ML Engineer', 'Software Engineer'];
 	@media (prefers-reduced-motion: reduce) {
 		.caption {
 			animation: none;
+		}
+	}
+	/* short screens, such as a phone on its side: smaller text so the strip keeps some air */
+	@media (max-height: 520px) {
+		h1 {
+			font-size: clamp(2rem, min(12vw, 9.5vh), 9rem);
+		}
+		.line {
+			font-size: clamp(1rem, min(3.5vw, 3.4vh), 2.5rem);
+		}
+		.scene {
+			padding-block: 0.75rem;
 		}
 	}
 </style>
