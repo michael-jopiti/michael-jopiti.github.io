@@ -1,18 +1,29 @@
 ---
 import Layout from '../layouts/Layout.astro';
+
+const roles = ['Computational Biologist', 'ML Engineer', 'Software Engineer'];
 ---
 
 <Layout title="Michael Jopiti">
 	<h1 id="name">Michael Jopiti</h1>
+	<p id="role">
+		<span class="sr-only">{roles.join(', ')}</span>
+		<span id="role-text" aria-hidden="true">{roles[0]}</span>
+	</p>
 </Layout>
 
-<script>
-	const h1 = document.getElementById('name')!;
-	const text = h1.textContent ?? '';
-
+<!-- inline: runs right after the markup, so the full text never flashes before typing starts -->
+<script is:inline define:vars={{ roles }}>
 	if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
+		const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+		const h1 = document.getElementById('name');
+		const roleText = document.getElementById('role-text');
+		const text = h1.textContent;
+
 		h1.setAttribute('aria-label', text);
 		h1.textContent = '';
+		roleText.textContent = '';
+
 		// hidden letters keep their space, so the layout never shifts while typing
 		const letters = [...text].map((char) => {
 			const span = document.createElement('span');
@@ -26,12 +37,30 @@ import Layout from '../layouts/Layout.astro';
 		caret.className = 'caret';
 		letters[0].before(caret);
 
-		letters.forEach((span, i) => {
-			setTimeout(() => {
+		(async () => {
+			await sleep(400);
+			for (const span of letters) {
 				span.style.visibility = 'visible';
 				span.after(caret);
-			}, 400 + i * 110 + Math.random() * 60);
-		});
+				await sleep(110 + Math.random() * 60);
+			}
+
+			roleText.after(caret);
+			await sleep(500);
+			// type each title, hold it, erase it, then move to the next one forever
+			for (let i = 0; ; i = (i + 1) % roles.length) {
+				for (const char of roles[i]) {
+					roleText.textContent += char;
+					await sleep(70 + Math.random() * 50);
+				}
+				await sleep(1400);
+				while (roleText.textContent) {
+					roleText.textContent = roleText.textContent.slice(0, -1);
+					await sleep(35);
+				}
+				await sleep(300);
+			}
+		})();
 	}
 </script>
 
@@ -43,10 +72,26 @@ import Layout from '../layouts/Layout.astro';
 		line-height: 0.95;
 		letter-spacing: -0.04em;
 	}
-	h1 :global(.caret) {
+	#role {
+		margin: 1.5rem 0 0;
+		min-height: 1.3em;
+		font-size: clamp(1.25rem, 3.5vw, 2.5rem);
+		line-height: 1.3;
+	}
+	.sr-only {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		overflow: hidden;
+		clip: rect(0 0 0 0);
+		white-space: nowrap;
+	}
+	h1 :global(.caret),
+	#role :global(.caret) {
 		position: relative;
 	}
-	h1 :global(.caret)::after {
+	h1 :global(.caret)::after,
+	#role :global(.caret)::after {
 		content: '';
 		position: absolute;
 		left: 0.02em;
