@@ -3,8 +3,37 @@ import Layout from '../layouts/Layout.astro';
 ---
 
 <Layout title="Michael Jopiti">
-	<h1>Michael Jopiti</h1>
+	<h1 id="name">Michael Jopiti</h1>
 </Layout>
+
+<script>
+	const h1 = document.getElementById('name')!;
+	const text = h1.textContent ?? '';
+
+	if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
+		h1.setAttribute('aria-label', text);
+		h1.textContent = '';
+		// hidden letters keep their space, so the layout never shifts while typing
+		const letters = [...text].map((char) => {
+			const span = document.createElement('span');
+			span.textContent = char;
+			span.setAttribute('aria-hidden', 'true');
+			span.style.visibility = 'hidden';
+			h1.append(span);
+			return span;
+		});
+		const caret = document.createElement('span');
+		caret.className = 'caret';
+		letters[0].before(caret);
+
+		letters.forEach((span, i) => {
+			setTimeout(() => {
+				span.style.visibility = 'visible';
+				span.after(caret);
+			}, 400 + i * 110 + Math.random() * 60);
+		});
+	}
+</script>
 
 <style>
 	h1 {
@@ -13,5 +42,23 @@ import Layout from '../layouts/Layout.astro';
 		font-weight: 700;
 		line-height: 0.95;
 		letter-spacing: -0.04em;
+	}
+	h1 :global(.caret) {
+		position: relative;
+	}
+	h1 :global(.caret)::after {
+		content: '';
+		position: absolute;
+		left: 0.02em;
+		bottom: 0.05em;
+		width: 0.06em;
+		height: 0.85em;
+		background: currentColor;
+		animation: blink 1s steps(1) infinite;
+	}
+	@keyframes blink {
+		50% {
+			opacity: 0;
+		}
 	}
 </style>
