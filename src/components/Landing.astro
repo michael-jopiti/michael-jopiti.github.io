@@ -1,0 +1,295 @@
+---
+import { Content } from '../../aboutme.md';
+
+// `start` is the view the page opens on: the home view or the about view.
+const { start } = Astro.props;
+const intro = 'Swiss, 26 years old';
+const roles = ['Computational Biologist', 'ML Engineer', 'Software Engineer'];
+---
+
+<div class="band">
+	<div class="scene home">
+		<h1 id="name">Michael Jopiti</h1>
+		<p id="intro" class="line">
+			<span class="sr-only">{intro}</span>
+			<span id="intro-text" aria-hidden="true">{intro}</span>
+		</p>
+		<p id="role" class="line">
+			<span class="sr-only">{roles.join(', ')}</span>
+			<span id="role-text" aria-hidden="true">{roles[0]}</span>
+		</p>
+	</div>
+	<div class="scene about">
+		<article><Content /></article>
+	</div>
+</div>
+<!-- gives the page its scroll distance, everything visible is fixed -->
+<div class="spacer"></div>
+
+<!-- define:vars would stamp --p onto each element here and hide the value the script sets on the root -->
+<style is:global set:html={`:root { --p: ${start === 'about' ? 1 : 0}; }`}></style>
+<style is:global>
+	html {
+		/* keeps the width the same while the page is locked during a glide */
+		scrollbar-gutter: stable;
+	}
+	body {
+		background-attachment: fixed;
+	}
+	main {
+		max-width: none;
+		padding: 0;
+	}
+	nav {
+		position: fixed;
+		top: 0;
+		left: 0;
+		right: 0;
+		z-index: 1;
+		opacity: clamp(0, calc(1 - var(--p) * 4), 1);
+		transform: translateY(calc(var(--p) * -100%));
+	}
+	/* black strip across the bottom, it grows to fill the screen as --p goes from 0 to 1 */
+	.band {
+		position: fixed;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		height: calc((33.333 + 66.667 * var(--p)) * 1vh);
+		overflow: hidden;
+		background: #000;
+		color: #fff;
+		text-shadow: none;
+	}
+	.scene {
+		position: absolute;
+		inset: 0;
+		box-sizing: border-box;
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		/* line the text up with the page content, which is centered in 60rem */
+		padding: 0 max(1.5rem, calc((100vw - 60rem) / 2 + 1.5rem));
+	}
+	.home {
+		opacity: clamp(0, calc(1 - (var(--p) - 0.55) * 4), 1);
+	}
+	.about {
+		opacity: clamp(0, calc((var(--p) - 0.7) * 4), 1);
+	}
+	.spacer {
+		height: 180vh;
+	}
+	article {
+		max-width: 40rem;
+		line-height: 1.5;
+	}
+</style>
+
+
+<!-- inline: runs right after the markup, so the full text never flashes before typing starts -->
+<script is:inline define:vars={{ intro, roles, start }}>
+	if (start === 'home' && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+		const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+		const h1 = document.getElementById('name');
+		const introText = document.getElementById('intro-text');
+		const roleText = document.getElementById('role-text');
+		const text = h1.textContent;
+
+		h1.setAttribute('aria-label', text);
+		h1.textContent = '';
+		introText.textContent = '';
+		roleText.textContent = '';
+
+		// hidden letters keep their space, so the layout never shifts while typing
+		const letters = [...text].map((char) => {
+			const span = document.createElement('span');
+			span.textContent = char;
+			span.setAttribute('aria-hidden', 'true');
+			span.style.visibility = 'hidden';
+			h1.append(span);
+			return span;
+		});
+		const caret = document.createElement('span');
+		caret.className = 'caret';
+		letters[0].before(caret);
+
+		(async () => {
+			await sleep(400);
+			for (const span of letters) {
+				span.style.visibility = 'visible';
+				span.after(caret);
+				await sleep(110 + Math.random() * 60);
+			}
+
+			introText.after(caret);
+			await sleep(500);
+			for (const char of intro) {
+				introText.textContent += char;
+				await sleep(70 + Math.random() * 50);
+			}
+
+			roleText.after(caret);
+			await sleep(500);
+			// type each title, hold it, erase it, then move to the next one forever
+			for (let i = 0; ; i = (i + 1) % roles.length) {
+				for (const char of roles[i]) {
+					roleText.textContent += char;
+					await sleep(70 + Math.random() * 50);
+				}
+				await sleep(1400);
+				while (roleText.textContent) {
+					roleText.textContent = roleText.textContent.slice(0, -1);
+					await sleep(35);
+				}
+				await sleep(300);
+			}
+		})();
+	}
+
+	// Scrolling drives --p from 0 (home) to 1 (about). Everything else follows from it in CSS.
+	{
+		const root = document.documentElement;
+		const nav = document.querySelector('nav');
+		const home = document.querySelector('.scene.home');
+		const about = document.querySelector('.scene.about');
+		const range = () => innerHeight * 0.8;
+		let shown = start;
+
+		history.scrollRestoration = 'manual';
+
+		function update() {
+			const p = Math.min(1, Math.max(0, scrollY / range()));
+			root.style.setProperty('--p', p);
+			nav.style.visibility = p > 0.3 ? 'hidden' : '';
+			home.inert = p > 0.7;
+			about.inert = p < 0.7;
+
+			// the address follows the view without loading anything
+			const next = p > 0.7 ? 'about' : 'home';
+			if (next !== shown) {
+				shown = next;
+				history.replaceState(null, '', next === 'about' ? '/about/' : '/');
+				document.title = next === 'about' ? 'About Me' : 'Michael Jopiti';
+			}
+		}
+
+		if (start === 'about') scrollTo(0, range());
+		update();
+		addEventListener('scroll', update, { passive: true });
+		addEventListener('resize', update);
+
+		const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+		let settled = start === 'about' ? 1 : 0; // the view the page is in, 0 home, 1 about
+		let animating = false;
+		let samples = [];
+		let pause;
+
+		// Glide to a view. The page is locked meanwhile so leftover wheel or trackpad momentum
+		// cannot fight the glide.
+		function snapTo(target) {
+			const from = scrollY;
+			const to = target * range();
+			settled = target;
+			if (animating || Math.abs(from - to) <= 1) return;
+			animating = true;
+			root.style.overflow = 'hidden';
+			const duration = reduced ? 0 : Math.min(900, 350 + Math.abs(to - from) * 0.4);
+			const t0 = performance.now();
+			const step = (now) => {
+				const k = duration ? Math.min(1, (now - t0) / duration) : 1;
+				scrollTo(0, from + (to - from) * (1 - (1 - k) ** 3));
+				if (k < 1) return requestAnimationFrame(step);
+				setTimeout(() => {
+					root.style.overflow = '';
+					animating = false;
+					samples = [];
+				}, 150);
+			};
+			step(t0);
+		}
+
+		// Magnet. Leaving a view takes 30% of the way, otherwise it pulls back. A fast flick
+		// does not wait for that: if its momentum would carry it past the edge, it completes.
+		// shortcut: momentum guessed as the last 100 ms speed times 250 ms, tune by feel.
+		addEventListener(
+			'scroll',
+			() => {
+				if (animating) return;
+				const now = performance.now();
+				samples.push({ t: now, y: scrollY });
+				while (samples[0].t < now - 100) samples.shift();
+				const speed = now > samples[0].t ? (scrollY - samples[0].y) / (now - samples[0].t) : 0; // px/ms
+				const projected = (scrollY + speed * 250) / range();
+				if (Math.abs(speed) > 0.4 && (settled ? projected < 0.7 : projected > 0.3)) {
+					snapTo(1 - settled);
+					return;
+				}
+				clearTimeout(pause);
+				pause = setTimeout(() => {
+					const p = scrollY / range();
+					snapTo(settled ? (p < 0.7 ? 0 : 1) : p > 0.3 ? 1 : 0);
+				}, 120);
+			},
+			{ passive: true },
+		);
+
+		// the About Me link glides to the about view instead of loading a page
+		nav.querySelector('a[href="/about"]').addEventListener('click', (event) => {
+			event.preventDefault();
+			snapTo(1);
+		});
+	}
+</script>
+
+<style>
+	h1 {
+		margin: 0;
+		/* limited by height as well, so the three lines always fit inside the strip */
+		font-size: clamp(2.5rem, min(12vw, 12vh), 9rem);
+		font-weight: 700;
+		line-height: 0.95;
+		letter-spacing: -0.04em;
+	}
+	.line {
+		margin: 0.5rem 0 0;
+		min-height: 1.3em;
+		font-size: clamp(1.1rem, min(3.5vw, 3.5vh), 2.5rem);
+		line-height: 1.3;
+	}
+	#intro {
+		margin-top: 1.5rem;
+	}
+	/* zero-width space keeps the line box alive while the title is empty, so the caret stays on the line */
+	.line::before {
+		content: '\200b';
+	}
+	.sr-only {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		overflow: hidden;
+		clip: rect(0 0 0 0);
+		white-space: nowrap;
+	}
+	h1 :global(.caret),
+	.line :global(.caret) {
+		position: relative;
+	}
+	h1 :global(.caret)::after,
+	.line :global(.caret)::after {
+		content: '';
+		position: absolute;
+		left: 0.02em;
+		bottom: 0.05em;
+		width: 0.06em;
+		height: 0.85em;
+		background: currentColor;
+		animation: blink 1s steps(1) infinite;
+	}
+	@keyframes blink {
+		50% {
+			opacity: 0;
+		}
+	}
+</style>
